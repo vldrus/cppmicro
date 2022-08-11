@@ -2,7 +2,23 @@ cmake_minimum_required(VERSION 3.16)
 
 project(cppmicro)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 configure_file(config.json config.json COPYONLY)
+
+add_executable(cppmicro main.cpp)
+
+target_link_libraries(cppmicro
+    PRIVATE
+        cpplog::cpplog
+        httplib::httplib
+        nlohmann_json::nlohmann_json)
+
+set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+set(HTTPLIB_COMPILE ON)
 
 include(FetchContent)
 
@@ -20,11 +36,3 @@ FetchContent_Declare(nlohmann_json
     URL      https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz
     URL_HASH SHA256=5daca6ca216495edf89d167f808d1d03c4a4d929cef7da5e10f135ae1540c7e4)
 FetchContent_MakeAvailable(nlohmann_json)
-
-add_executable(cppmicro main.cpp)
-
-target_link_libraries(cppmicro
-    PRIVATE
-        cpplog::cpplog
-        httplib::httplib
-        nlohmann_json::nlohmann_json)
