@@ -1,66 +1,84 @@
-#include <cstdlib>
-#include <fstream>
 #include <string>
 #include <vector>
+#include <exception>
 #include <cpplog.hpp>
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
-struct Config {
-    int log;
-    int port;
-    int threads;
+using std::string;
+using std::vector;
+using std::exception;
+using cpplog::log;
+using httplib::Server;
+using httplib::Request;
+using httplib::Response;
+using httplib::ThreadPool;
+using Handler = httplib::Server::Handler;
+using json = nlohmann::json;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, log, port, threads)
-};
+static const int PORT = 8080;
+static const int THREADS = 1000;
 
 struct User {
-    std::string username;
-    std::string password;
+    string username;
+    string password;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(User, username, password)
 };
 
-void get_all_users(const httplib::Request &req, httplib::Response &res) {
-    LOG_DEBUG << "get_all_users: start";
+Handler make_handler(string name, Handler handler);
 
-    try {
-        std::vector<User> users;
+void get_all_users(const Request& req, Response& res);
 
-        users.push_back(User{"user1", "pass1"});
-        users.push_back(User{"user2", "pass2"});
+int main()
+{
+    log::level = cpplog::DEBUG;
 
-        LOG_DEBUG << "get_all_users: " << nlohmann::json(users).dump();
+    LOG_INFO << "Listening at port " << PORT << " with " << THREADS << " threads";
 
-        res.set_content(nlohmann::json(users).dump(), "application/json");
-    }
-    catch (const std::exception &e) {
-        LOG_ERROR << "get_all_users: " << e.what();
-        res.status = 500;
-    }
+    Server server;
 
-    LOG_DEBUG << "get_all_users: finish";
-}
+    server.Get("/users", make_handler("get_all_users", get_all_users));
 
-int main() {
-    Config config = nlohmann::json::parse(std::ifstream("config.json"));
-
-    cpplog::log::level = static_cast<cpplog::loglevel>(config.log);
-
-    LOG_INFO << "Listening at port " << config.port;
-
-    httplib::Server server;
-
-    server.Get("/", get_all_users);
-
-    server.new_task_queue = [&] {
-        return new httplib::ThreadPool(config.threads);
+    server.new_task_queue = [] {
+        return new ThreadPool(THREADS);
     };
 
-    if (!server.listen("0.0.0.0", config.port)) {
-        LOG_ERROR << "Cannot listen at port " << config.port;
-        return EXIT_FAILURE;
-    }
+    server.listen("0.0.0.0", PORT);
+}
 
-    return EXIT_SUCCESS;
+Handler make_handler(string name, Handler handler)
+{
+    auto error = [=](string what, Response& res) {
+        LOG_ERROR << name << " error: " << what;
+
+        res.status = 500;
+        res.set_content("Server Error", "text/plain");
+    };
+
+    return [=](const Request& req, Response& res) {
+        LOG_DEBUG << name << " start";
+
+        try {
+            handler(req, res);
+        } catch (const exception& e) {
+            error(e.what(), res);
+        } catch (...) {
+            error("unknown", res);
+        }
+
+        LOG_DEBUG << name << " finish";
+    };
+}
+
+void get_all_users(const Request& req, Response& res)
+{
+    vector<User> users;
+
+    users.push_back(User{"user1", "pass1"});
+    users.push_back(User{"user2", "pass2"});
+
+    LOG_DEBUG << "get_all_users found: " << users.size();
+
+    res.set_content(json(users).dump(), "application/json");
 }
