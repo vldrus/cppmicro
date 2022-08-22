@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <cstdlib>
 #include <exception>
 #include <cpplog.hpp>
 #include <httplib.h>
@@ -54,7 +55,12 @@ int main()
         return new ThreadPool(config.threads);
     };
 
-    server.listen("0.0.0.0", config.port);
+    if (!server.listen("0.0.0.0", config.port)) {
+        LOG_ERROR << "Cannot listen at port " << config.port;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 Handler make_handler(string name, Handler handler)
