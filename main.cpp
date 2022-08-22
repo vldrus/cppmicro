@@ -51,7 +51,7 @@ int main()
 
     server.Get("/users", make_handler("get_all_users", get_all_users));
 
-    server.new_task_queue = [=] {
+    server.new_task_queue = [config] {
         return new ThreadPool(config.threads);
     };
 

@@ -25,6 +25,9 @@ FetchContent_Declare(cpplog
 FetchContent_MakeAvailable(cpplog)
 
 set(HTTPLIB_COMPILE ON)
+set(HTTPLIB_REQUIRE_ZLIB ON)
+set(HTTPLIB_REQUIRE_BROTLI ON)
+set(HTTPLIB_REQUIRE_OPENSSL ON)
 
 FetchContent_Declare(httplib
     URL https://github.com/yhirose/cpp-httplib/archive/refs/tags/v0.10.9.tar.gz)
