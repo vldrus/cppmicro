@@ -46,10 +46,10 @@ auto index_post_handler(const httplib::Request &req, httplib::Response &res) -> 
 auto main() -> int {
     nlohmann::json config = nlohmann::json::parse(std::ifstream("config.json"));
 
-    int loglevel = config["loglevel"].get<int>();
-    int port = config["port"].get<int>();
+    config["loglevel"].get_to(cpplog::level);
 
-    cpplog::level = static_cast<cpplog::loglevel>(loglevel);
+    int port;
+    config["port"].get_to(port);
 
     LOG_INFO << "Listening at port " << port;
 
