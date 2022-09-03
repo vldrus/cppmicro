@@ -2,20 +2,28 @@
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
+using std::string;
+using std::ifstream;
+using std::exception;
+using nlohmann::json;
+using httplib::Server;
+using httplib::Request;
+using httplib::Response;
+
 struct User {
-    std::string username;
-    std::string password;
+    string username;
+    string password;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(User, username, password)
 };
 
-auto make_handler(const std::string &name, const httplib::Server::Handler &handler) -> httplib::Server::Handler {
-    return [name, handler](const httplib::Request &req, httplib::Response &res) -> void {
+auto make_handler(const string &name, const Server::Handler &handler) -> Server::Handler {
+    return [name, handler](const Request &req, Response &res) -> void {
         LOG_DEBUG << name << " start";
 
         try {
             handler(req, res);
-        } catch (const std::exception &e) {
+        } catch (const exception &e) {
             LOG_ERROR << name << " error: " << e.what();
 
             res.status = 500;
@@ -26,25 +34,25 @@ auto make_handler(const std::string &name, const httplib::Server::Handler &handl
     };
 }
 
-auto index_get_handler(const httplib::Request &req, httplib::Response &res) -> void {
+auto index_get_handler(const Request &req, Response &res) -> void {
     res.set_content("Hello!", "text/plain");
 }
 
-auto index_post_handler(const httplib::Request &req, httplib::Response &res) -> void {
+auto index_post_handler(const Request &req, Response &res) -> void {
     User user;
 
     try {
-        user = nlohmann::json::parse(req.body);
-    } catch (const std::exception &e) {
+        user = json::parse(req.body);
+    } catch (const exception &e) {
         res.status = 400;
         return;
     }
 
-    res.set_content(nlohmann::json(user).dump(), "application/json");
+    res.set_content(json(user).dump(), "application/json");
 }
 
 auto main() -> int {
-    nlohmann::json config = nlohmann::json::parse(std::ifstream("config.json"));
+    json config = json::parse(ifstream("config.json"));
 
     config["loglevel"].get_to(cpplog::level);
 
@@ -53,7 +61,7 @@ auto main() -> int {
 
     LOG_INFO << "Listening at port " << port;
 
-    httplib::Server server;
+    Server server;
 
     server.Get("/", make_handler("index_get_handler", index_get_handler));
     server.Post("/", make_handler("index_post_handler", index_post_handler));
