@@ -9,6 +9,7 @@ using nlohmann::json;
 using httplib::Server;
 using httplib::Request;
 using httplib::Response;
+using httplib::ThreadPool;
 
 struct User {
     string username;
@@ -59,12 +60,19 @@ auto main() -> int {
     int port;
     config["port"].get_to(port);
 
-    LOG_INFO << "Listening at port " << port;
+    int threads;
+    config["threads"].get_to(threads);
+
+    LOG_INFO << "Listening at port " << port << " with " << threads << " threads";
 
     Server server;
 
     server.Get("/", make_handler("index_get_handler", index_get_handler));
     server.Post("/", make_handler("index_post_handler", index_post_handler));
+
+    server.new_task_queue = [threads]() -> ThreadPool * {
+        return new ThreadPool(threads);
+    };
 
     if (!server.listen("0.0.0.0", port)) {
         LOG_ERROR << "Cannot listen at port " << port;
