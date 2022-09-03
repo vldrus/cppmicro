@@ -11,6 +11,14 @@ using httplib::Request;
 using httplib::Response;
 using httplib::ThreadPool;
 
+struct Config {
+    cpplog::loglevel loglevel;
+    size_t threads;
+    int port;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config, loglevel, threads, port)
+};
+
 struct User {
     string username;
     string password;
@@ -53,29 +61,23 @@ auto index_post_handler(const Request &req, Response &res) -> void {
 }
 
 auto main() -> int {
-    json config = json::parse(ifstream("config.json"));
+    Config config = json::parse(ifstream("config.json"));
 
-    config["loglevel"].get_to(cpplog::level);
+    cpplog::level = config.loglevel;
 
-    int port;
-    config["port"].get_to(port);
-
-    int threads;
-    config["threads"].get_to(threads);
-
-    LOG_INFO << "Listening at port " << port << " with " << threads << " threads";
+    LOG_INFO << "Listening at port " << config.port << " with " << config.threads << " threads";
 
     Server server;
 
     server.Get("/", make_handler("index_get_handler", index_get_handler));
     server.Post("/", make_handler("index_post_handler", index_post_handler));
 
-    server.new_task_queue = [threads]() -> ThreadPool * {
-        return new ThreadPool(threads);
+    server.new_task_queue = [config]() -> ThreadPool * {
+        return new ThreadPool(config.threads);
     };
 
-    if (!server.listen("0.0.0.0", port)) {
-        LOG_ERROR << "Cannot listen at port " << port;
+    if (!server.listen("0.0.0.0", config.port)) {
+        LOG_ERROR << "Cannot listen at port " << config.port;
         return EXIT_FAILURE;
     }
 
