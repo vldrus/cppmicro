@@ -1,4 +1,6 @@
-#include <cpplog.hpp>
+/* MIT License */
+
+#include <cpplog.h>
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
@@ -63,7 +65,7 @@ auto index_post_handler(const Request &req, Response &res) -> void {
 auto main() -> int {
     Config config = json::parse(ifstream("config.json"));
 
-    cpplog::level = config.loglevel;
+    cpplog::level(config.loglevel);
 
     LOG_INFO << "Listening at port " << config.port << " with " << config.threads << " threads";
 
