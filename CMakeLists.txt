@@ -23,8 +23,8 @@ target_link_libraries(cppmicro
 include(FetchContent)
 
 FetchContent_Declare(cpplog
-        URL https://github.com/vldrus/cpplog/archive/refs/tags/v0.4.3.tar.gz
-        URL_HASH SHA256=9fb35f7108f64dc23795d7eb9e6beb540a6c9bb38afa4c55a6d8979e00fade40)
+        URL https://github.com/vldrus/cpplog/archive/refs/tags/v0.4.4.tar.gz
+        URL_HASH SHA256=807377e2dd38b2d79a4ff1949cb256d933542141164c3ceb7da66aab1dc92858)
 FetchContent_MakeAvailable(cpplog)
 
 set(HTTPLIB_COMPILE ON)
