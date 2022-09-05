@@ -30,18 +30,18 @@ struct User {
 
 auto make_handler(const string &name, const Server::Handler &handler) -> Server::Handler {
     return [name, handler](const Request &req, Response &res) -> void {
-        LOG_DEBUG << name << " start";
+        cpplog_debug << name << " start";
 
         try {
             handler(req, res);
         } catch (const exception &e) {
-            LOG_ERROR << name << " error: " << e.what();
+            cpplog_error << name << " error: " << e.what();
 
             res.status = 500;
             res.set_content("Server Error", "text/plain");
         }
 
-        LOG_DEBUG << name << " finish";
+        cpplog_debug << name << " finish";
     };
 }
 
@@ -67,7 +67,7 @@ auto main() -> int {
 
     cpplog::level(config.loglevel);
 
-    LOG_INFO << "Listening at port " << config.port << " with " << config.threads << " threads";
+    cpplog_info << "Listening at port " << config.port << " with " << config.threads << " threads";
 
     Server server;
 
@@ -79,7 +79,7 @@ auto main() -> int {
     };
 
     if (!server.listen("0.0.0.0", config.port)) {
-        LOG_ERROR << "Cannot listen at port " << config.port;
+        cpplog_error << "Cannot listen at port " << config.port;
         return EXIT_FAILURE;
     }
 
