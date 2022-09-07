@@ -24,7 +24,7 @@ include(FetchContent)
 
 FetchContent_Declare(cpplog
         URL https://github.com/vldrus/cpplog/archive/refs/tags/v0.1.0.tar.gz
-        URL_HASH SHA256=4dfdcd3ee3ab426660b852f6c1fedf2254701e2d5cabc7e0d648cb1954ae1331)
+        URL_HASH SHA256=e98f14bc95604d284463285d1e27c92c0a5c3b64a1779ff854820b6863863e00)
 FetchContent_MakeAvailable(cpplog)
 
 set(HTTPLIB_COMPILE ON)

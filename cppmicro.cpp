@@ -40,7 +40,7 @@ auto make_handler(const string &name, const Server::Handler &handler) -> Server:
         try {
             handler(req, res);
         } catch (const exception &e) {
-            cpplog() << name << " error: " << e.what();
+            cpplog_error << name << " error: " << e.what();
 
             res.status = 500;
             res.set_content("Server Error", "text/plain");
@@ -48,9 +48,7 @@ auto make_handler(const string &name, const Server::Handler &handler) -> Server:
 
         auto finish = system_clock::now();
 
-        if (config.debug) {
-            cpplog() << name << " took " << duration_cast<milliseconds>(finish - start).count() << " ms";
-        }
+        cpplog_debug << name << " took " << duration_cast<milliseconds>(finish - start).count() << " ms";
     };
 }
 
@@ -74,7 +72,11 @@ auto index_post_handler(const Request &req, Response &res) -> void {
 auto main() -> int {
     config = json::parse(ifstream("config.json"));
 
-    cpplog() << "Listening with config: " << json(config).dump();
+    if (config.debug) {
+        cpplog::level(cpplog::debug);
+    }
+
+    cpplog_info << "Listening with config: " << json(config).dump();
 
     Server server;
 
@@ -86,7 +88,7 @@ auto main() -> int {
     };
 
     if (!server.listen("0.0.0.0", config.port)) {
-        cpplog() << "Cannot listen at port " << config.port;
+        cpplog_error << "Cannot listen at port " << config.port;
         return EXIT_FAILURE;
     }
 
