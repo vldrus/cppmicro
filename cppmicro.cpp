@@ -4,17 +4,10 @@
 #include <httplib.h>
 #include <nlohmann/json.hpp>
 
-using std::string;
-using std::ifstream;
-using std::exception;
-using std::chrono::milliseconds;
-using std::chrono::system_clock;
-using std::chrono::duration_cast;
-using nlohmann::json;
-using httplib::Server;
-using httplib::Request;
-using httplib::Response;
-using httplib::ThreadPool;
+using namespace std;
+using namespace std::chrono;
+using namespace nlohmann;
+using namespace httplib;
 
 struct Config {
     bool debug;
